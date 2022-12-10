@@ -1,6 +1,6 @@
 ﻿namespace AOC_2022.Puzzles
 {
-    public class Day5
+    public class Day05
     {
         public static string SolutionA(string input)
         {
@@ -23,6 +23,7 @@
                 .Select(x => x.Select(y => "" + y).ToArray())
                 .Select(x => x.Where(y => Array.FindIndex(x, z => ReferenceEquals(y, z)) % 4 == 1));
 
+            //Transpose and filter out empty spaces
             var boxStacks = boxContents.SelectMany(x => x.Select((c, i) => Tuple.Create(c, i)))
                 .GroupBy(x => x.Item2)
                 .OrderBy(x => x.Key)

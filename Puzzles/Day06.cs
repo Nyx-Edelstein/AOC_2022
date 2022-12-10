@@ -1,6 +1,6 @@
 ﻿namespace AOC_2022.Puzzles
 {
-    public class Day6
+    public class Day06
     {
         public static int SolutionA(string input)
         {
