@@ -67,10 +67,7 @@
                     }
                 }
 
-                if (!blocked)
-                {
-                    data.RemoveAt(0);
-                }
+                if (!blocked) data.RemoveAt(0);
 
                 cycleNum += 1;
 
