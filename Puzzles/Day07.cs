@@ -68,7 +68,7 @@
             return folders;
         }
 
-        internal class Folder
+        private class Folder
         {
             internal string Name { get; init; } = string.Empty;
             internal Folder Parent { get; set; }
@@ -78,7 +78,7 @@
             internal int Size => Files.Sum(x => x.Size) + Folders.Sum(x => x.Size);
         }
 
-        internal class File
+        private class File
         {
             internal string Name { get; init; } = string.Empty;
             internal Folder Parent { get; set; }

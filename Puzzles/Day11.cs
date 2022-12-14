@@ -90,17 +90,18 @@
 
             return monkeyData.ToArray();
         }
+
+        private class MonkeyData
+        {
+            internal int MonkeyId { get; set; }
+            internal List<long> Items { get; set; }
+            internal Func<long, long> Inspect { get; set; }
+            internal int Divisor { get; set; }
+            internal Func<long, bool> Test { get; set; }
+            internal int TrueMonkey { get; set; }
+            internal int FalseMonkey { get; set; }
+            internal long NumInspections { get; set; }
+        }
     }
 
-    public class MonkeyData
-    {
-        public int MonkeyId { get; set; }
-        public List<long> Items { get; set; }
-        public Func<long, long> Inspect { get; set; }
-        public int Divisor { get; set; }
-        public Func<long, bool> Test { get; set; }
-        public int TrueMonkey { get; set; }
-        public int FalseMonkey { get; set; }
-        public long NumInspections { get; set; }
-    }
 }
