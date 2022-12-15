@@ -6,9 +6,9 @@ namespace AOC_2022
     {
         public static void Main(string[] args)
         {
-            var input = GetInput(@"13_1", test: false);
-            //var solution = Day13.SolutionA(input);
-            var solution = Day13.SolutionB(input);
+            var input = GetInput(@"14_1", test: false);
+            //var solution = Day14.SolutionA(input);
+            var solution = Day14.SolutionB(input);
 
             Console.WriteLine(solution);
             Console.WriteLine("\r\nPress any key to continue...");
