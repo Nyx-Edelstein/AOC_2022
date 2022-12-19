@@ -83,12 +83,6 @@ namespace AOC_2022.Common
 
         public ValueWalk FindBestWalkPartitioned(int start, IReadOnlySet<int> partition, int costLimit, ValueFunc valueFunc, ValueFunc heuristicFunc)
         {
-            var partitionedNodes = Nodes.Values
-                .Where(x => partition.Contains(x.Id))
-                .OrderByDescending(x => x.Value)
-                .Select(x => x.Id)
-                .ToArray();
-
             var initial = new ValueWalk(Nodes[start], costLimit, valueFunc, heuristicFunc);
             var toConsider = new List<ValueWalk> { initial };
             var best = toConsider[0];
