@@ -88,7 +88,7 @@ namespace AOC_2022.Puzzles
             }
 
             var partitionMasks = Enumerable.Range(1, Convert.ToInt32(Math.Pow(2.0, openableValves.Length) - 2)).ToArray();
-            var flowrates = new ConcurrentBag<Tuple<int, string>>();
+            var flowrates = new ConcurrentBag<int>();
             Parallel.For(0, partitionMasks.Length, (i) =>
             {
                 var partition = GeneratePartition(partitionMasks[i], openableValves.Select(x => x.Id).ToList());
@@ -97,7 +97,7 @@ namespace AOC_2022.Puzzles
                 var b = simplifiedGraph.FindBestWalkPartitioned(0, partition.Item2, minutesTotal, CalculateFlowRate, HeuristicFlowRate);
                 var totalFlowRate = a.Value + b.Value;
 
-                flowrates.Add(Tuple.Create(totalFlowRate, a + "||" + b));
+                flowrates.Add(totalFlowRate);
                 if (flowrates.Count % 1000 == 0)
                 {
                     Console.Clear();
@@ -105,8 +105,8 @@ namespace AOC_2022.Puzzles
                 }
             });
 
-            var highestFlowrate = flowrates.OrderByDescending(x => x.Item1).First();
-            return highestFlowrate.Item1;
+            var highestFlowrate = flowrates.Max();
+            return highestFlowrate;
         }
 
 
