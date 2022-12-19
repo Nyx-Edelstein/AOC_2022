@@ -1,55 +1,116 @@
 ﻿using System.Collections.Concurrent;
+using AOC_2022.Common;
+using AOC_2022.Extensions;
 
 namespace AOC_2022.Puzzles
 {
-    using Graph = Dictionary<int, Day16.Valve>;
+    //using Graph = Dictionary<int, Day16.Valve>;
 
     public class Day16
     {
         public static int SolutionA(string input)
         {
-            var graph = Parse(input);
-            var openableValves = graph.Values
-                .Where(x => x.Rate > 0)
-                .OrderByDescending(x => x.Rate)
-                .Select(x => x.Id)
-                .ToHashSet();
-            var highestFlowrate = Solve(graph, openableValves, 30);
-            return highestFlowrate.Flowrate;
+            const int minutesRemaining = 30;
+            var nodes = Parse(input);
+            var graph = new Graph(nodes);
+            var simplifiedGraph = graph.Simplifiy(costLimit: minutesRemaining);
+            var openableValves = simplifiedGraph.Nodes.Values
+                .Where(x => x.Value > 0)
+                .OrderByDescending(x => x.Value)
+                .ToArray();
+
+            int CalculateFlowRate(ValueWalk walk, Edge edge)
+            {
+                return walk.Value + simplifiedGraph.Nodes[edge.ConnectingNodeId].Value * (walk.CostRemaining - edge.Cost);
+            }
+
+            int HeuristicFlowRate(ValueWalk walk, Edge edge)
+            {
+                if (walk.CostRemaining == 0) return walk.Value;
+
+                //Calculate score if we magically open all unopened valves reachable in the time remaining
+                var openedValves = walk.Path.Select(x => x.ConnectingNodeId).ToList();
+                var heuristicScore = 0;
+                var offset = walk.CostLimit - walk.CostRemaining;
+                var i = offset;
+                foreach (var valve in openableValves)
+                {
+                    if (openedValves.Contains(valve.Id)) continue;
+                    if (i >= walk.CostLimit) break;
+
+                    heuristicScore += valve.Value * (walk.CostLimit - i);
+                    i += 2;
+                }
+
+                return walk.Value + heuristicScore;
+            }
+
+            var bestWalk = simplifiedGraph.FindBestWalk(0, minutesRemaining, CalculateFlowRate, HeuristicFlowRate);
+            return bestWalk.Value;
         }
 
-        //This is not even close to being efficient
-        //Idea: condense the graph to only consider shortest transitions from openable nodes to openable nodes
-        //Pros: This should be a very large speedup, as currently the bottleneck is heuristic pruning
-        //Cons: Have to keep track of cost separate from path length, which complicates things a bit
-        //Will probably return to this later...
-        public static string SolutionB(string input)
+        public static int SolutionB(string input)
         {
             const int minutesTotal = 26;
-            var graph = Parse(input);
-            var openableValves = graph.Values
-                .Where(x => x.Rate > 0)
-                .Select(x => x.Id)
+
+            var nodes = Parse(input);
+            var graph = new Graph(nodes);
+            var simplifiedGraph = graph.Simplifiy(costLimit: minutesTotal);
+            var openableValves = simplifiedGraph.Nodes.Values
+                .Where(x => x.Value > 0)
+                .OrderByDescending(x => x.Value)
                 .ToArray();
+
+            int CalculateFlowRate(ValueWalk walk, Edge edge)
+            {
+                return walk.Value + simplifiedGraph.Nodes[edge.ConnectingNodeId].Value * (walk.CostRemaining - edge.Cost);
+            }
+
+            int HeuristicFlowRate(ValueWalk walk, Edge edge)
+            {
+                if (walk.CostRemaining == 0) return walk.Value;
+
+                //Calculate score if we magically open all unopened valves reachable in the time remaining
+                var openedValves = walk.Path.Select(x => x.ConnectingNodeId).ToList();
+                var heuristicScore = 0;
+                var offset = walk.CostLimit - walk.CostRemaining;
+                var i = offset;
+                foreach (var valve in openableValves)
+                {
+                    if (openedValves.Contains(valve.Id)) continue;
+                    if (i >= walk.CostLimit) break;
+
+                    heuristicScore += valve.Value * (walk.CostLimit - i);
+                    i += 2;
+                }
+
+                return walk.Value + heuristicScore;
+            }
+
             var partitionMasks = Enumerable.Range(1, Convert.ToInt32(Math.Pow(2.0, openableValves.Length) - 2)).ToArray();
-            var flowrates = new ConcurrentBag<Tuple<int,string>>();
+            var flowrates = new ConcurrentBag<Tuple<int, string>>();
             Parallel.For(0, partitionMasks.Length, (i) =>
             {
-                var partition = GeneratePartition(partitionMasks[i], openableValves);
+                var partition = GeneratePartition(partitionMasks[i], openableValves.Select(x => x.Id).ToList());
 
-                var a = Solve(graph, partition.Item1, minutesTotal);
-                var b = Solve(graph, partition.Item2, minutesTotal);
-                var totalFlowRate = a.Flowrate + b.Flowrate;
+                var a = simplifiedGraph.FindBestWalkPartitioned(0, partition.Item1, minutesTotal, CalculateFlowRate, HeuristicFlowRate);
+                var b = simplifiedGraph.FindBestWalkPartitioned(0, partition.Item2, minutesTotal, CalculateFlowRate, HeuristicFlowRate);
+                var totalFlowRate = a.Value + b.Value;
 
-                flowrates.Add(Tuple.Create(totalFlowRate, $"({totalFlowRate}) + {a.PathString} || {b.PathString}"));
-                if (flowrates.Count % 10 == 0) Console.WriteLine($"{((100.0 * flowrates.Count) / partitionMasks.Length):F1}%");
+                flowrates.Add(Tuple.Create(totalFlowRate, a + "||" + b));
+                if (flowrates.Count % 1000 == 0)
+                {
+                    Console.Clear();
+                    Console.WriteLine($"{((100.0 * flowrates.Count) / partitionMasks.Length):F1}%");
+                }
             });
 
             var highestFlowrate = flowrates.OrderByDescending(x => x.Item1).First();
-            return highestFlowrate.Item2;
+            return highestFlowrate.Item1;
         }
 
-        private static Graph Parse(string input)
+
+        private static IDictionary<int, Node> Parse(string input)
         {
             var data = input
                 .Split("\r\n", StringSplitOptions.RemoveEmptyEntries)
@@ -64,125 +125,35 @@ namespace AOC_2022.Puzzles
                 id = (i += 2),
                 name = x
             }).ToDictionary(x => x.name, x => x.id);
-                
-            var graph = data.Select(x =>
+
+            var graph = new Dictionary<int, Node>();
+            foreach (var x in data)
             {
                 var id = nameToId[x[1]];
                 var rate = int.Parse(x[4][5..^1]);
                 var connections = string.Join("", x[9..]).Split(",", StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => nameToId[x])
+                    .Select(x => new Edge(x))
                     .ToArray();
 
                 //We can simplify the problem by baking "opening valves" into the graph so its stateless
                 //Since we're using integers for ids we can store this in the lower bit
                 if (rate > 0)
                 {
-                    var openValve = new Valve
-                    {
-                        Id = id + 1,
-                        Rate = rate,
-                        Connections = connections,
-                    };
+                    var openValve = new Node(id + 1, rate, connections);
+                    var closedValve = new Node(id, 0, connections.ConcatSingle(new Edge(openValve.Id)).ToArray());
 
-                    var closedValve = new Valve
-                    {
-                        Id = id,
-                        Rate = 0,
-                        Connections = connections.Concat(new[] { openValve.Id }).ToArray()
-                    };
-
-                    return new[] { closedValve, openValve };
+                    graph.Add(openValve.Id, openValve);
+                    graph.Add(closedValve.Id, closedValve);
                 }
-
-                var valve = new Valve
+                else
                 {
-                    Id = id,
-                    Rate = rate,
-                    Connections = connections
-                };
-
-                return new[] { valve };
-            }).SelectMany(x => x).ToDictionary(x => x.Id);
+                    var valve = new Node(id, rate, connections);
+                    graph.Add(valve.Id, valve);
+                }
+            }
 
             return graph;
-        }
-
-        private static Path Solve(IReadOnlyDictionary<int, Valve> graph, IReadOnlySet<int> partition, int minutesTotal)
-        {
-            var openableValves = graph.Values
-                .Where(x => partition.Contains(x.Id))
-                .OrderByDescending(x => x.Rate)
-                .Select(x => x.Id)
-                .ToArray();
-
-            var toConsider = new List<Path> { new(graph[0]) };
-            var highest = toConsider[0];
-            do
-            {
-                var current = toConsider[0];
-                toConsider.RemoveAt(0);
-
-                if (current.Flowrate > highest.Flowrate) highest = current;
-
-                //Done if path is max length
-                if (current.PathTaken.Count >= minutesTotal) continue;
-
-                //Done if all valves opened
-                var openedValves = current.PathTaken.Where(x => x % 2 == 1).ToArray();
-                if (openedValves.Length == openableValves.Length) continue;
-
-                //Else, get connecting nodes
-                var candidatePaths = new List<Path>();
-                var connections = graph[current.PathTaken[^1]].Connections;
-
-                foreach (var connection in connections)
-                {
-                    //Can't open the same node twice
-                    if (openedValves.Contains(connection)) continue;
-
-                    //For part B, only consider openable nodes on this side of the partition
-                    if (connection % 2 == 1 && !partition.Contains(connection)) continue;
-
-                    var candidate = new Path(current, graph[connection], minutesTotal);
-
-                    //Prune cycles
-                    var untilLastOpenValve = candidate.PathTaken.FindLastIndex(x => x % 2 == 1);
-                    var pathFragment = candidate.PathTaken.Skip(untilLastOpenValve+1).ToArray();
-                    if (pathFragment.Length != pathFragment.Distinct().Count()) continue;
-
-                    //Heuristically prune unviable branches
-                    var offset = current.PathTaken.Count;
-                    if (offset == minutesTotal && candidate.Flowrate < highest.Flowrate) continue;
-
-                    //Calculate score if we magically open all unopened valves reachable in the time remaining
-                    var heuristicScore = 0;
-                    var i = offset;
-                    foreach (var v in openableValves)
-                    {
-                        if (i >= minutesTotal) break;
-                        if (openedValves.Contains(v)) continue;
-
-                        heuristicScore += graph[v].Rate * (minutesTotal - i);
-                        i += 2;
-                    }
-
-                    if (candidate.Flowrate + heuristicScore < highest.Flowrate) continue;
-
-                    candidatePaths.Add(candidate);
-                }
-
-                //Add new items to consideration, sorted
-                //This is faster than adding the elements and sorting the list since we only have a few
-                foreach (var candidate in candidatePaths)
-                {
-                    var index = toConsider.BinarySearch(candidate);
-                    if (index < 0)
-                        toConsider.Insert(~index, candidate);
-                    else
-                        toConsider.Insert(index, candidate);
-                }
-            } while (toConsider.Any());
-            return highest;
         }
 
         private static Tuple<HashSet<int>,HashSet<int>> GeneratePartition(int partitionMask, IReadOnlyList<int> openableValves)
@@ -198,42 +169,6 @@ namespace AOC_2022.Puzzles
             }
 
             return Tuple.Create(a, b);
-        }
-
-        internal class Valve
-        {
-            internal int Id { get; init; }
-            internal int Rate { get; init; }
-            internal int[] Connections { get; init; }
-
-            public override string ToString() => $"{Id}: {Rate} | {string.Join(",", Connections)}";
-        }
-
-        internal class Path : IComparable<Path>
-        {
-            internal List<int> PathTaken { get; }
-            internal int Flowrate { get; }
-
-            internal Path(Valve start)
-            {
-                PathTaken = new List<int> { start.Id };
-                Flowrate = 0;
-            }
-
-            internal Path(Path previous, Valve current, int minutesTotal)
-            {
-                PathTaken = previous.PathTaken.Concat(new[] { current.Id }).ToList();
-
-                var MinutesRemaining = minutesTotal - PathTaken.Count + 1;
-                Flowrate = previous.Flowrate + current.Rate * MinutesRemaining;
-            }
-            
-            //Sort backwards
-            public int CompareTo(Path? other) => other == null? 1 : other.Flowrate.CompareTo(Flowrate);
-
-            //For debugging
-            public string PathString => string.Join(",", PathTaken);
-            public override string ToString() => $"Flowrate: {Flowrate}, Path: {PathString}";
         }
     }
 }

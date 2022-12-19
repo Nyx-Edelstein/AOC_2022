@@ -11,5 +11,15 @@
 
         public static T[][] ReverseElements<T>(this IEnumerable<IEnumerable<T>> enumerable) =>
             enumerable.Select(x => x.Reverse().ToArray()).ToArray();
+
+        public static void AddSorted<T>(this List<T> list, T item) where T : IComparable<T>
+        {
+            var index = list.BinarySearch(item);
+            if (index < 0) list.Insert(~index, item);
+            else list.Insert(index, item);
+        }
+
+        public static IEnumerable<T> ConcatSingle<T>(this IEnumerable<T> collection, T item)
+            => collection.Concat(new[] { item });
     }
 }
