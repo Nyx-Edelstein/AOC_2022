@@ -4,8 +4,6 @@ using AOC_2022.Extensions;
 
 namespace AOC_2022.Puzzles
 {
-    //using Graph = Dictionary<int, Day16.Valve>;
-
     public class Day16
     {
         public static int SolutionA(string input)

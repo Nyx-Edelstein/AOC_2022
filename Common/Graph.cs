@@ -194,7 +194,6 @@ namespace AOC_2022.Common
         private ValueFunc HeuristicFunc { get; init; }
 
         
-
         public ValueWalk(Node start, int costLimit, ValueFunc valueFunc, ValueFunc heuristicFunc)
         {
             CurrentNode = start.Id;
