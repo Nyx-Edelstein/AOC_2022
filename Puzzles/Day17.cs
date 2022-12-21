@@ -17,6 +17,7 @@
 
         public static long SolutionB(string input)
         {
+            const long target = 1000000000000;
             var directions = Parse(input);
             var rocks = new Rocks();
             var chamber = new Chamber(rocks, directions);
@@ -39,10 +40,10 @@
             var cycleLength = curr_index - init_index;
             var heightDiff = curr_height - init_height;
 
-            var remainingCycles = (1000000000000 - curr_index) / cycleLength;
+            var remainingCycles = (target - curr_index) / cycleLength;
             var cycleHeight = remainingCycles * heightDiff;
 
-            var remainingRocks = (1000000000000 - curr_index) % cycleLength;
+            var remainingRocks = (target - curr_index) % cycleLength;
             
             for (var j = curr_index; j < curr_index + remainingRocks; j++)
                 chamber.SimulateOneRock();
