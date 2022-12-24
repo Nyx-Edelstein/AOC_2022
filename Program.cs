@@ -7,13 +7,13 @@ namespace AOC_2022
     {
         public static void Main(string[] args)
         {
-            var input = GetInput(@"19_1", test: false);
+            var input = GetInput(@"20_1", test: false);
 
             Stopwatch watch = new Stopwatch();
             watch.Start();
 
-            //var solution = Day19.SolutionA(input);
-            var solution = Day19.SolutionB(input);
+            //var solution = Day20.SolutionA(input);
+            var solution = Day20.SolutionB(input);
 
             watch.Stop();
 
