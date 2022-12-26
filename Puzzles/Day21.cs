@@ -32,7 +32,8 @@
             while (!rootMonkey.Expression.CanBeSolved())
             {
                 data = data.Where(x => !x.Expression.CanBeSolved()).ToArray();
-                foreach (var m in data) m.TrySimplify(monkeyDict);
+                foreach (var m in data)
+                    m.TrySimplify(monkeyDict);
             }
 
             var rootExpression = (OperationExpression)rootMonkey.Expression;
