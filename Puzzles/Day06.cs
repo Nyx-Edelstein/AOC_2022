@@ -17,7 +17,7 @@
             var marker = input.Select((x, i) => new
             {
                 index = i,
-                group = input[i..packetSize]
+                group = input[i..(i+packetSize)]
             }).First(x => x.group.ToHashSet().Count == packetSize);
 
             return marker.index + packetSize;

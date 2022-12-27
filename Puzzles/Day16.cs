@@ -96,11 +96,11 @@ namespace AOC_2022.Puzzles
                 var totalFlowRate = a.Value + b.Value;
 
                 flowrates.Add(totalFlowRate);
-                if (flowrates.Count % 1000 == 0)
-                {
-                    Console.Clear();
-                    Console.WriteLine($"{((100.0 * flowrates.Count) / partitionMasks.Length):F1}%");
-                }
+                //if (flowrates.Count % 1000 == 0)
+                //{
+                //    Console.Clear();
+                //    Console.WriteLine($"{((100.0 * flowrates.Count) / partitionMasks.Length):F1}%");
+                //}
             });
 
             var highestFlowrate = flowrates.Max();

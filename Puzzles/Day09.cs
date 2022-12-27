@@ -9,7 +9,7 @@
 
         public static int SolutionB(string input)
         {
-            return Solution(input, 9);
+            return Solution(input, 10);
         }
 
         public static int Solution(string input, int numKnots)
@@ -40,7 +40,7 @@
                 for (var i = 0; i < instruction.distance; i++)
                 {
                     knots[0] = Tuple.Create(knots[0].Item1 + direction.Item1, knots[0].Item2 + direction.Item2);
-                    for (var j = 0; j < numKnots; j++)
+                    for (var j = 0; j < numKnots - 1; j++)
                     {
                         if (Dist(knots[j], knots[j + 1]) > 1)
                             knots[j + 1] = UpdateKnot(knots[j], knots[j + 1]);

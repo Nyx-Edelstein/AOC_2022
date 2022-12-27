@@ -92,7 +92,6 @@ namespace AOC_2022.Puzzles
 
             } while (toConsider.Any());
             
-            Console.WriteLine(toConsider.Size());
             toConsider.Dispose();
             return bestOverall;
         }
