@@ -57,7 +57,6 @@
                     directionMasks.GetNext(),
                     directionMasks.GetNext(),
                 };
-
                 foreach (var elfLocation in elfLocations)
                 {
                     if (IsAlone(elfLocation, elfLocations)) continue;
@@ -80,7 +79,7 @@
                     }
                 }
 
-                //For each unique proposed location, make the movement, updating bounds
+                //For each unique proposed location, make the movement
                 var uniqueProposedLocations = proposedLocations.Where(x => x.Value.Count == 1);
                 foreach (var proposedLocation in uniqueProposedLocations)
                 {
@@ -94,18 +93,6 @@
                 //Cycle list of directions
                 directionMasks.SkipNext();
 
-                ////For debugging
-                //var s = "";
-                //for (var row = -3; row <= 10; row++)
-                //{
-                //    for (var col = -3; col <= 11; col++)
-                //    {
-                //        if (row == 0 && col == 0) s += "O";
-                //        else s += elfLocations.Contains((row, col)) ? "#" : ".";
-                //    }
-                //    s += "\r\n";
-                //}
-                //Console.WriteLine(s);
                 i++;
             } while (LoopCondition());
             
