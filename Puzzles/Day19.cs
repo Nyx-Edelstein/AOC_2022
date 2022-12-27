@@ -434,40 +434,39 @@ namespace AOC_2022.Puzzles
                 return _hash;
             }
         }
-    }
 
-    internal class PriorityQueueSet<T> : IDisposable
-        where T : class, IComparable<T>
-    {
-        private readonly HashSet<T> Filter = new();
-        private readonly C5.IntervalHeap<T> Queue = new();
-
-        public bool Add(T item)
+        internal class PriorityQueueSet<T> : IDisposable where T : class, IComparable<T>
         {
-            var seen = Filter.Contains(item);
-            if (seen) return false;
+            private readonly HashSet<T> Filter = new();
+            private readonly C5.IntervalHeap<T> Queue = new();
 
-            Queue.Add(item);
-            Filter.Add(item);
-            return true;
-        }
+            public bool Add(T item)
+            {
+                var seen = Filter.Contains(item);
+                if (seen) return false;
 
-        public T? Pull()
-        {
-            if (Queue.IsEmpty) return null;
+                Queue.Add(item);
+                Filter.Add(item);
+                return true;
+            }
 
-            var item = Queue.FindMin();
-            Queue.DeleteMin();
-            return item;
-        }
+            public T? Pull()
+            {
+                if (Queue.IsEmpty) return null;
 
-        public bool Any() => !Queue.IsEmpty;
+                var item = Queue.FindMin();
+                Queue.DeleteMin();
+                return item;
+            }
 
-        public void Dispose() => Filter.Clear();
+            public bool Any() => !Queue.IsEmpty;
 
-        public int Size()
-        {
-            return Filter.Count;
+            public void Dispose() => Filter.Clear();
+
+            public int Size()
+            {
+                return Filter.Count;
+            }
         }
     }
 }
